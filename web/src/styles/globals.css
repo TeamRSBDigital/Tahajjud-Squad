@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Tahajjud Squad - Premium Islamic Emerald Green & Royal Gold Design System
+   Palette:
+   - Primary: Emerald Green #123C2D
+   - Secondary / Accent: Royal Gold #D4AF57
+   - Surface: Warm White #FFFDF5
+   - Text / Contrast: Deep Charcoal #252B27
+   ========================================================================== */
+
+:root {
+  /* --- Primary: Emerald Green Palette --- */
+  --primary-deep: #081C15;          /* Deepest Forest Emerald */
+  --primary-dark: #0C291E;          /* Deep Emerald Header/Banner */
+  --primary: #123C2D;               /* Primary Emerald Green #123C2D */
+  --primary-accent: #1A5641;        /* Medium Accent Emerald */
+  --primary-light: #267A5D;         /* Lighter Emerald */
+  --primary-soft: #EBF4F0;          /* Soft Emerald wash */
+  --primary-hover: #0C291E;
+
+  /* --- Secondary / Accent: Royal Gold Palette #D4AF57 --- */
+  --color-gold: #D4AF57;            /* Royal Gold #D4AF57 */
+  --color-gold-accent: #E5C678;     /* Lighter Gold */
+  --color-gold-dark: #A68532;       /* Deep Gold for accessible text */
+  --color-gold-muted: #B5923B;
+  --color-gold-soft: #FBF6E9;       /* Warm Gold container */
+  --color-gold-border: #EBD8A5;
+
+  /* --- Surface: Warm White Palette #FFFDF5 --- */
+  --color-bg-primary: #F7F5EC;      /* Clean Warm Page Background */
+  --color-bg-secondary: #F2EFE4;    /* Subtle Secondary Background */
+  --color-bg-surface: #FFFDF5;      /* Warm White Card Surface #FFFDF5 */
+  --color-bg-surface-elevated: #FFFFFF;
+  --color-bg-surface-active: #EBF4F0;
+
+  /* Deep Emerald Surfaces (for Hero headers & Night theme cards) */
+  --color-bg-deep: #123C2D;
+  --color-bg-deep-surface: #0C291E;
+  --color-bg-deep-elevated: #164232;
+
+  /* --- Text / Contrast: Deep Charcoal #252B27 --- */
+  --color-text-primary: #252B27;    /* Deep Charcoal #252B27 */
+  --color-text-secondary: #434E47;  /* Readable Medium Charcoal */
+  --color-text-muted: #6B7870;      /* Subtle Muted Charcoal */
+  --color-text-inverse: #FFFDF5;    /* Warm White text on dark emerald */
+  --color-text-inverse-muted: #D8E2DC;
+  --color-text-accent: #123C2D;     /* Primary link */
+
+  /* --- Borders & Outlines --- */
+  --color-border: #E5DFD1;          /* Warm tactile border */
+  --color-border-subtle: #EFECE2;
+  --color-border-gold: rgba(212, 175, 87, 0.45);
+  --color-border-focused: #123C2D;
+
+  /* --- Semantic Status --- */
+  --color-success: #1E7E52;
+  --color-success-soft: #EAF5EE;
+  --color-missed: #9E4040;
+  --color-missed-soft: #FDF0F0;
+  --color-qaza: #B58428;
+  --color-qaza-soft: #FAF2E2;
+
+  /* --- Elevation & Shadows --- */
+  --shadow-card: 0 3px 12px -2px rgba(18, 60, 45, 0.06), 0 1px 4px -1px rgba(18, 60, 45, 0.04);
+  --shadow-elevated: 0 10px 24px -4px rgba(18, 60, 45, 0.10), 0 4px 8px -2px rgba(18, 60, 45, 0.04);
+  --shadow-gold: 0 0 16px rgba(212, 175, 87, 0.25);
+}
+
+/* Base Body Styles */
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hind Siliguri", "Noto Sans Bengali", "SolaimanLipi", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+/* Custom Emerald Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: #D4AF57;
+  border-radius: 9999px;
+  border: 1px solid var(--color-bg-primary);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B5923B;
+}
+
+/* ==========================================================================
+   Utility Classes for Emerald & Royal Gold Experience
+   ========================================================================== */
+
+/* Hero Emerald Gradient Card */
+.bg-emerald-gradient {
+  background: linear-gradient(135deg, #0C291E 0%, #123C2D 50%, #1A5641 100%);
+  color: #FFFDF5;
+}
+
+/* Warm White Card Surface with subtle border */
+.bg-warm-card {
+  background-color: #FFFDF5;
+  border: 1px solid #E5DFD1;
+  box-shadow: var(--shadow-card);
+}
+
+/* Gold Accent Badge */
+.badge-gold {
+  background-color: #FBF6E9;
+  color: #8C6F23;
+  border: 1px solid rgba(212, 175, 87, 0.45);
+}
+
+/* Emerald Badge */
+.badge-emerald {
+  background-color: #EBF4F0;
+  color: #123C2D;
+  border: 1px solid rgba(18, 60, 45, 0.25);
+}
+
+/* Typography Helpers */
+.font-bengali {
+  font-family: "Hind Siliguri", "Noto Sans Bengali", "SolaimanLipi", sans-serif;
+}
+
+.font-arabic {
+  font-family: "Amiri", "Scheherazade New", "Traditional Arabic", serif;
+}

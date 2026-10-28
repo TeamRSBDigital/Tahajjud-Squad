@@ -1,0 +1,106 @@
+{
+  "entities": {
+    "User": {
+      "path": "users/{userId}",
+      "fields": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "timezone": { "type": "string" },
+        "language": { "type": "string" },
+        "consentGiven": { "type": "boolean" },
+        "consentScope": { "type": "string" },
+        "consentTimestamp": { "type": "number" },
+        "tahajjudAlarmEnabled": { "type": "boolean" },
+        "tahajjudAlarmOffsetMinutes": { "type": "number" },
+        "calculationCity": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "isSuperAdmin": { "type": "boolean" },
+        "activeSquadId": { "type": "string" }
+      }
+    },
+    "PrayerRecord": {
+      "path": "users/{userId}/prayers/{prayerId}",
+      "fields": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "localDate": { "type": "string" },
+        "prayerName": { "type": "string" },
+        "status": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      }
+    },
+    "TahajjudRecord": {
+      "path": "users/{userId}/tahajjud/{tahajjudId}",
+      "fields": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "localDate": { "type": "string" },
+        "performed": { "type": "boolean" },
+        "rakahs": { "type": "number" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      }
+    },
+    "AmalEntry": {
+      "path": "users/{userId}/amalEntries/{amalId}",
+      "fields": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "localDate": { "type": "string" },
+        "category": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "targetCount": { "type": "number" },
+        "currentCount": { "type": "number" },
+        "unit": { "type": "string" },
+        "status": { "type": "string" },
+        "notes": { "type": "string" },
+        "isSharedWithSquad": { "type": "boolean" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      }
+    },
+    "Squad": {
+      "path": "squads/{squadId}",
+      "fields": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "ownerUid": { "type": "string" },
+        "inviteCode": { "type": "string" },
+        "isPrivate": { "type": "boolean" },
+        "memberCount": { "type": "number" },
+        "createdAt": { "type": "number" }
+      }
+    },
+    "SquadMember": {
+      "path": "squads/{squadId}/members/{memberUid}",
+      "fields": {
+        "uid": { "type": "string" },
+        "squadId": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string" },
+        "joinedAt": { "type": "number" },
+        "shareMode": { "type": "string" }
+      }
+    },
+    "AdminAuditLog": {
+      "path": "auditLogs/{logId}",
+      "fields": {
+        "id": { "type": "string" },
+        "adminUid": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "number" }
+      }
+    }
+  }
+}

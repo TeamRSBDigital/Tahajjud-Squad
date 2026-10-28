@@ -1,0 +1,6 @@
+{
+  "name": "Amal Tracker",
+  "description": "Premium Islamic Prayer, Tahajjud, Dhikr & Super Admin Platform",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
