@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.example.data.local.*
+import com.example.mission.QrMissionEngine
 import com.example.model.*
 import com.example.prayer.PrayerTimesCalculator
 import kotlinx.coroutines.flow.first
@@ -174,4 +175,81 @@ class ExampleRobolectricTest {
         assertEquals(SquadRole.MEMBER.name, members[0].role)
         assertEquals(SharingConsentScope.AGGREGATE_ONLY.name, members[0].shareMode)
     }
+
+    @Test
+    fun `qr engine generates secure tokens conforming to policy without PII and verifies checksum`() {
+        val token1 = QrMissionEngine.generateSecureQrToken()
+        val token2 = QrMissionEngine.generateSecureQrToken()
+
+        assertNotNull(token1)
+        assertTrue(token1.startsWith("TS-QR-"))
+        assertEquals(18, token1.length)
+        assertTrue("Token must match security format", QrMissionEngine.isValidTokenFormat(token1))
+        assertTrue("Generated token must have valid on-device checksum", QrMissionEngine.verifyTokenChecksum(token1))
+
+        // Ensure entropy / uniqueness
+        assertNotEquals("Subsequent tokens must be cryptographically unique", token1, token2)
+
+        // Invalid token format & checksum tampering
+        assertFalse(QrMissionEngine.isValidTokenFormat("INVALID-TOKEN"))
+        assertFalse(QrMissionEngine.isValidTokenFormat("https://malicious.com"))
+        assertFalse(QrMissionEngine.isValidTokenFormat(""))
+        assertFalse(QrMissionEngine.isValidTokenFormat(null))
+
+        // Tamper with the last character (corrupting checksum)
+        val tamperedToken = token1.dropLast(1) + (if (token1.last() == '0') '1' else '0')
+        assertFalse("Tampered token must fail checksum verification", QrMissionEngine.verifyTokenChecksum(tamperedToken))
+    }
+
+    @Test
+    fun `qr engine generates valid bitmap and decodes back accurately`() {
+        val testToken = QrMissionEngine.generateSecureQrToken()
+        val bitmap = QrMissionEngine.generateHighContrastPrintableQr(testToken, 400)
+
+        assertNotNull("Generated QR bitmap must not be null", bitmap)
+        assertEquals(400, bitmap?.width)
+        assertEquals(400, bitmap?.height)
+
+        // Local on-device decoding roundtrip
+        val decoded = QrMissionEngine.decodeQrBitmap(bitmap!!)
+        assertEquals("Decoded token must strictly match original token", testToken, decoded)
+        assertTrue("Decoded token must verify checksum", QrMissionEngine.verifyTokenChecksum(decoded))
+    }
+
+    @Test
+    fun `qr engine validates against local allowlist and checksum`() {
+        val primaryToken = QrMissionEngine.generateSecureQrToken()
+        val secondaryToken = QrMissionEngine.generateSecureQrToken()
+        val foreignValidToken = QrMissionEngine.generateSecureQrToken()
+
+        val allowlist = setOf(primaryToken, secondaryToken)
+
+        // Match against primary token in allowlist
+        val validResult = QrMissionEngine.validateScannedCode(primaryToken, localAllowlist = allowlist)
+        assertTrue("Token in allowlist should succeed", validResult is QrMissionEngine.QrValidationResult.ValidMatch)
+        assertEquals(primaryToken, (validResult as QrMissionEngine.QrValidationResult.ValidMatch).token)
+        assertTrue(validResult.checksumVerified)
+
+        // Match against secondary token in allowlist
+        val validSecondary = QrMissionEngine.validateScannedCode(secondaryToken, localAllowlist = allowlist)
+        assertTrue("Secondary token in allowlist should succeed", validSecondary is QrMissionEngine.QrValidationResult.ValidMatch)
+
+        // Foreign token (valid checksum, but NOT in user's local allowlist)
+        val allowlistRejection = QrMissionEngine.validateScannedCode(foreignValidToken, localAllowlist = allowlist)
+        assertTrue("Foreign token must be rejected by allowlist", allowlistRejection is QrMissionEngine.QrValidationResult.AllowlistRejected)
+
+        // Tampered token with bad checksum
+        val tamperedCode = primaryToken.dropLast(1) + (if (primaryToken.last() == 'A') 'B' else 'A')
+        val checksumFail = QrMissionEngine.validateScannedCode(tamperedCode, localAllowlist = allowlist, requireChecksum = true)
+        assertTrue("Tampered checksum must fail", checksumFail is QrMissionEngine.QrValidationResult.ChecksumFailure)
+
+        // Non-QR random barcode / URL
+        val invalidFormat = QrMissionEngine.validateScannedCode("https://google.com", localAllowlist = allowlist)
+        assertTrue("Arbitrary URL must fail format check", invalidFormat is QrMissionEngine.QrValidationResult.InvalidFormat)
+
+        // Empty allowlist / unconfigured
+        val unconfigured = QrMissionEngine.validateScannedCode(primaryToken, registeredToken = "", localAllowlist = emptySet())
+        assertTrue("Unconfigured allowlist returns NotConfigured", unconfigured is QrMissionEngine.QrValidationResult.NotConfigured)
+    }
 }
+

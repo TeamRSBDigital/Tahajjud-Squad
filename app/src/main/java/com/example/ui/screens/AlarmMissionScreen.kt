@@ -34,7 +34,7 @@ import com.example.mission.QrMissionEngine
 import com.example.model.AlarmMissionType
 import com.example.model.MathProblem
 import com.example.model.TypingProblem
-import com.example.ui.components.IslamicCard
+import com.example.ui.components.*
 import com.example.ui.theme.*
 import com.example.viewmodel.AmalViewModel
 import java.text.SimpleDateFormat
@@ -595,73 +595,29 @@ fun AlarmMissionScreen(
                                 style = MaterialTheme.typography.bodySmall.copy(color = TextDarkSecondary)
                             )
 
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(14.dp))
 
-                            Button(
-                                onClick = { cameraCaptureLauncher.launch() },
-                                colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary, contentColor = Color.White),
-                                shape = RoundedCornerShape(14.dp),
-                                modifier = Modifier.fillMaxWidth().height(52.dp).testTag("open_qr_camera_btn")
-                            ) {
-                                Icon(Icons.Default.QrCodeScanner, contentDescription = null, tint = GoldAccent, modifier = Modifier.size(24.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = if (isBengali) "ক্যামেরা চালু করে স্ক্যান করুন" else "Launch Camera & Scan QR",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            // Direct token matching option for accessibility/fallback
-                            TextButton(
-                                onClick = { showManualQrField = !showManualQrField },
-                                modifier = Modifier.align(Alignment.CenterHorizontally)
-                            ) {
-                                Text(
-                                    text = if (showManualQrField) "ম্যানুয়াল অপশন লুকান" else "ক্যামেরা সমস্যা হলে টোকেন লিখুন",
-                                    color = TextDarkSecondary,
-                                    fontSize = 12.sp
-                                )
-                            }
-
-                            if (showManualQrField) {
-                                OutlinedTextField(
-                                    value = manualQrInput,
-                                    onValueChange = { manualQrInput = it },
-                                    label = { Text("টোকেন কোড (উদা: TS-QR-...)") },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Button(
-                                    onClick = {
-                                        val result = QrMissionEngine.validateScannedCode(manualQrInput, config.registeredQrToken)
-                                        when (result) {
-                                            is QrMissionEngine.QrValidationResult.ValidMatch -> {
-                                                isMissionDismissed = true
-                                                viewModel.stopAlarmRinging()
-                                                statusFeedbackMessage = "টোকেন সফলভাবে যাচাই হয়েছে!"
-                                                isFeedbackError = false
-                                            }
-                                            is QrMissionEngine.QrValidationResult.InvalidCode -> {
-                                                statusFeedbackMessage = result.messageBn
-                                                isFeedbackError = true
-                                            }
-                                            is QrMissionEngine.QrValidationResult.NotConfigured -> {
-                                                isMissionDismissed = true
-                                                viewModel.stopAlarmRinging()
-                                            }
-                                        }
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary, contentColor = Color.White),
-                                    shape = RoundedCornerShape(10.dp),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text("টোকেন যাচাই করুন")
-                                }
-                            }
+                            QrScannerComponent(
+                                registeredToken = config.registeredQrToken,
+                                localAllowlist = config.activeAllowlist,
+                                onScanSuccess = {
+                                    isMissionDismissed = true
+                                    viewModel.stopAlarmRinging()
+                                    statusFeedbackMessage = if (isBengali) "কিউআর কোড ও চেকসাম মিলেছে! মিশন সম্পন্ন হয়েছে।" else "QR code & checksum verified! Mission completed."
+                                    isFeedbackError = false
+                                },
+                                onScanFailure = { errorMsg ->
+                                    statusFeedbackMessage = errorMsg
+                                    isFeedbackError = true
+                                },
+                                onEmergencyBypass = {
+                                    isMissionDismissed = true
+                                    viewModel.stopAlarmRinging()
+                                    statusFeedbackMessage = if (isBengali) "জরুরী সেফটি বাইপাস সফল হয়েছে।" else "Emergency safety bypass unlocked."
+                                    isFeedbackError = false
+                                },
+                                isBengali = isBengali
+                            )
                         }
                     }
                 }
@@ -679,23 +635,107 @@ fun AlarmMissionScreen(
                                 )
                             )
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "টার্গেট বস্তু: ${config.registeredTargetName.ifBlank { "জায়নামাজ" }}",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = EmeraldPrimary
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = if (isBengali) "টার্গেট বস্তু: " else "Target Object: ",
+                                    style = MaterialTheme.typography.bodyMedium.copy(color = TextDarkSecondary)
                                 )
-                            )
-                            Text(
-                                text = if (isBengali) {
-                                    "আপনার নিবন্ধিত বস্তুর স্পষ্ট ছবি তুলুন। পর্যাপ্ত আলোতে সরাসরি ক্যামেরার সামনে ধরুন।"
-                                } else {
-                                    "Take a clear photo of your registered prayer mat or object."
-                                },
-                                style = MaterialTheme.typography.bodySmall.copy(color = TextDarkSecondary)
-                            )
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = EmeraldSoftBg,
+                                    border = BorderStroke(1.dp, EmeraldBorder)
+                                ) {
+                                    Text(
+                                        text = config.registeredTargetName.ifBlank { "জায়নামাজ (Prayer Mat)" },
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = EmeraldDark
+                                        ),
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
 
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            // Viewfinder Container with reference brackets (┌ ┐, └ ┘)
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color(0xFF1E2923),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(190.dp)
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    ReferenceCameraViewfinder(
+                                        bracketColor = Color.White,
+                                        frameSize = 150.dp,
+                                        bracketLength = 26.dp,
+                                        strokeWidth = 3.5.dp
+                                    )
+
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.padding(16.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.CameraAlt,
+                                            contentDescription = null,
+                                            tint = GoldAccent,
+                                            modifier = Modifier.size(36.dp)
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = if (isBengali) "জায়নামাজ ফ্রেমে ধরুন" else "Align Mat in Viewfinder",
+                                            style = MaterialTheme.typography.labelMedium.copy(
+                                                color = Color.White,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            // Checklist guidance (Matching Reference Image 4)
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MinimalWhiteSurfaceVariant, RoundedCornerShape(12.dp))
+                                    .padding(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.CropFree, contentDescription = null, tint = EmeraldPrimary, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = if (isBengali) "নিবন্ধিত জায়নামাজ ব্র্যাকেটের মাঝে রাখুন" else "Center target object within scan frame",
+                                        style = MaterialTheme.typography.bodySmall.copy(color = TextDarkSecondary, fontSize = 12.sp)
+                                    )
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.LightMode, contentDescription = null, tint = GoldDark, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = if (isBengali) "পর্যাপ্ত আলোতে স্পষ্ট ছবি তুলুন" else "Ensure good lighting conditions",
+                                        style = MaterialTheme.typography.bodySmall.copy(color = TextDarkSecondary, fontSize = 12.sp)
+                                    )
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Shield, contentDescription = null, tint = EmeraldAccent, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = if (isBengali) "সরাসরি উপর বা সামনে থেকে তুলুন" else "Hold device steady without shaking",
+                                        style = MaterialTheme.typography.bodySmall.copy(color = TextDarkSecondary, fontSize = 12.sp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(14.dp))
 
                             Button(
                                 onClick = { cameraCaptureLauncher.launch() },
@@ -703,7 +743,7 @@ fun AlarmMissionScreen(
                                 shape = RoundedCornerShape(14.dp),
                                 modifier = Modifier.fillMaxWidth().height(52.dp).testTag("open_photo_match_btn")
                             ) {
-                                Icon(Icons.Default.CameraAlt, contentDescription = null, tint = GoldAccent, modifier = Modifier.size(24.dp))
+                                Icon(Icons.Default.CameraAlt, contentDescription = null, tint = GoldAccent, modifier = Modifier.size(22.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = if (isBengali) "ছবি তুলে যাচাই করুন" else "Capture & Verify Target",

@@ -117,6 +117,8 @@ class AmalRepository(private val context: Context) {
             qrToken = com.example.mission.QrMissionEngine.generateSecureQrToken()
             alarmPrefs.edit().putString("qr_token", qrToken).apply()
         }
+        val savedAllowlist = alarmPrefs.getStringSet("qr_allowlist", emptySet()) ?: emptySet()
+        val allowlist = if (qrToken.isNotBlank()) (savedAllowlist + qrToken).toList() else savedAllowlist.toList()
 
         return SmartAlarmConfig(
             enabled = alarmPrefs.getBoolean("enabled", true),
@@ -124,6 +126,7 @@ class AmalRepository(private val context: Context) {
             difficulty = difficulty,
             taskCount = alarmPrefs.getInt("task_count", 2),
             registeredQrToken = qrToken,
+            qrAllowlist = allowlist,
             registeredTargetSignature = alarmPrefs.getString("target_signature", "") ?: "",
             registeredTargetName = alarmPrefs.getString("target_name", "") ?: "",
             emergencyFallbackAllowed = alarmPrefs.getBoolean("emergency_fallback", true),
@@ -135,12 +138,14 @@ class AmalRepository(private val context: Context) {
 
     fun updateSmartAlarmConfig(config: SmartAlarmConfig) {
         _smartAlarmConfig.value = config
+        val allowlistToSave = (config.qrAllowlist + config.registeredQrToken).filter { it.isNotBlank() }.toSet()
         alarmPrefs.edit()
             .putBoolean("enabled", config.enabled)
             .putString("mission_type", config.missionType.name)
             .putString("difficulty", config.difficulty.name)
             .putInt("task_count", config.taskCount)
             .putString("qr_token", config.registeredQrToken)
+            .putStringSet("qr_allowlist", allowlistToSave)
             .putString("target_signature", config.registeredTargetSignature)
             .putString("target_name", config.registeredTargetName)
             .putBoolean("emergency_fallback", config.emergencyFallbackAllowed)
@@ -153,7 +158,11 @@ class AmalRepository(private val context: Context) {
 
     fun regenerateQrToken(): String {
         val newToken = com.example.mission.QrMissionEngine.generateSecureQrToken()
-        val updated = _smartAlarmConfig.value.copy(registeredQrToken = newToken)
+        val currentAllowlist = _smartAlarmConfig.value.qrAllowlist
+        val updated = _smartAlarmConfig.value.copy(
+            registeredQrToken = newToken,
+            qrAllowlist = (currentAllowlist + newToken).distinct()
+        )
         updateSmartAlarmConfig(updated)
         return newToken
     }

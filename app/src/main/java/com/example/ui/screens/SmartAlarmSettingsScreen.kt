@@ -35,6 +35,7 @@ import com.example.model.MissionDifficulty
 import com.example.model.SmartAlarmConfig
 import com.example.ui.components.IslamicCard
 import com.example.ui.components.IslamicTopHeader
+import com.example.ui.components.QrCodeDisplayCard
 import com.example.ui.theme.*
 import com.example.viewmodel.AmalViewModel
 
@@ -49,7 +50,6 @@ fun SmartAlarmSettingsScreen(
     val isBengali = userProfile.language == "bn"
     val config by viewModel.smartAlarmConfig.collectAsState()
 
-    var showQrDialog by remember { mutableStateOf(false) }
     var showTargetPhotoDialog by remember { mutableStateOf(false) }
     var targetNameInput by remember { mutableStateOf(config.registeredTargetName.ifBlank { "জায়নামাজ" }) }
     var capturedTargetBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -62,13 +62,6 @@ fun SmartAlarmSettingsScreen(
             capturedTargetBitmap = bitmap
             showTargetPhotoDialog = true
         }
-    }
-
-    // QR Bitmap for current token
-    val qrBitmap = remember(config.registeredQrToken) {
-        if (config.registeredQrToken.isNotBlank()) {
-            QrMissionEngine.generateQrBitmap(config.registeredQrToken, 480, 480)
-        } else null
     }
 
     LazyColumn(
@@ -381,77 +374,15 @@ fun SmartAlarmSettingsScreen(
         if (config.missionType == AlarmMissionType.QR_CODE) {
             item {
                 Spacer(modifier = Modifier.height(14.dp))
-                IslamicCard(
-                    borderColor = GoldPrimary.copy(alpha = 0.5f),
+                QrCodeDisplayCard(
+                    token = config.registeredQrToken,
+                    onRegenerateToken = { viewModel.regenerateQrToken() },
+                    isBengali = isBengali,
                     modifier = Modifier.padding(horizontal = 16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = if (isBengali) "নিবন্ধিত কিউআর কোড টোকেন" else "Registered QR Token",
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextDarkPrimary
-                                )
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = config.registeredQrToken.ifBlank { "টোকেন তৈরি হয়নি" },
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = EmeraldPrimary
-                                )
-                            )
-                        }
-
-                        Icon(Icons.Default.QrCode2, contentDescription = null, tint = GoldDark, modifier = Modifier.size(28.dp))
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = if (isBengali) {
-                            "নির্দেশনা: কোডটি প্রিন্ট করে আপনার জায়নামাজে বা পড়ার টেবিলে রাখুন। তাহাজ্জুদের অ্যালার্ম বাজলে বিছানা ছেড়ে হেঁটে গিয়ে এটি স্ক্যান করতে হবে।"
-                        } else {
-                            "Instructions: Print and place this QR code at your prayer spot. You must walk over and scan it to dismiss the alarm."
-                        },
-                        style = MaterialTheme.typography.bodySmall.copy(color = TextDarkSecondary, fontSize = 11.5.sp)
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(
-                            onClick = { showQrDialog = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary, contentColor = Color.White),
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier.weight(1f).testTag("view_qr_dialog_btn")
-                        ) {
-                            Icon(Icons.Default.QrCode, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(if (isBengali) "কিউআর কোড দেখুন" else "View QR", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        }
-
-                        OutlinedButton(
-                            onClick = { viewModel.regenerateQrToken() },
-                            border = BorderStroke(1.dp, EmeraldPrimary),
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier.weight(1f).testTag("regenerate_qr_btn")
-                        ) {
-                            Icon(Icons.Default.Autorenew, contentDescription = null, tint = EmeraldPrimary, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(if (isBengali) "নতুন কোড বানান" else "Regenerate", color = EmeraldPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
+                )
             }
         }
+
 
         // Camera Photo Target Setup Card (When Camera Photo Mission is Selected)
         if (config.missionType == AlarmMissionType.PHOTO_TARGET) {
@@ -570,82 +501,6 @@ fun SmartAlarmSettingsScreen(
                                 fontSize = 11.5.sp
                             )
                         )
-                    }
-                }
-            }
-        }
-    }
-
-    // QR Code Display Dialog
-    if (showQrDialog && qrBitmap != null) {
-        Dialog(onDismissRequest = { showQrDialog = false }) {
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = MinimalWhiteSurface,
-                border = BorderStroke(1.dp, MinimalWhiteCardBorder),
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = if (isBengali) "তাহাজ্জুদ স্কোয়াড কিউআর কোড" else "Tahajjud Squad QR Code",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = EmeraldDark
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "টোকেন: ${config.registeredQrToken}",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = TextDarkSecondary,
-                            fontWeight = FontWeight.Medium
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .size(240.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .border(1.dp, GoldBorder, RoundedCornerShape(12.dp))
-                            .background(Color.White)
-                            .padding(8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            bitmap = qrBitmap.asImageBitmap(),
-                            contentDescription = "QR Code",
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Text(
-                        text = if (isBengali) {
-                            "এই কোডটি জায়নামাজ বা পড়ার টেবিলে রেখে দিন। অ্যালার্মের সময় বিছানা থেকে উঠে স্ক্যান করতে হবে।"
-                        } else {
-                            "Place this code at your prayer area. Walk over and scan to dismiss alarm."
-                        },
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = TextDarkSecondary,
-                            textAlign = TextAlign.Center,
-                            fontSize = 11.sp
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Button(
-                        onClick = { showQrDialog = false },
-                        colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary, contentColor = Color.White),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(if (isBengali) "বন্ধ করুন" else "Close", fontWeight = FontWeight.Bold)
                     }
                 }
             }

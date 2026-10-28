@@ -32,8 +32,24 @@ val GoldBorder = Color(0xFFFDE047)          // Crisp Gold Border
 // Clean Minimal White Surfaces
 val MinimalWhiteBackground = Color(0xFFF8FAF8) // Airy, clean soft-white page background
 val MinimalWhiteSurface = Color(0xFFFFFFFF)    // Pure Crisp White Surface
-val MinimalWhiteSurfaceVariant = Color(0xFFF1F5F3) // Subtle elevated card surface
-val MinimalWhiteCardBorder = Color(0xFFE2E8E4) // Crisp delicate border
+val MinimalWhiteSurfaceVariant = Color(0xFFF3F5F4) // Subtle elevated card surface
+val MinimalWhiteCardBorder = Color(0xFFE5EBE7) // Crisp delicate border
+
+// Soft Lavender Aura & Multi-Metric Palette (Inspired by Reference UI)
+val LavenderAuraStart = Color(0xFFEDE9FE)      // Soft Lavender glow
+val LavenderAuraMid = Color(0xFFF5F3FF)        // Light Lilac mist
+val LavenderAuraEnd = Color(0xFFFBFBFE)        // Near white transition
+val LavenderAccent = Color(0xFF8B5CF6)         // Subtle purple accent for charts
+val LavenderSoftBg = Color(0xFFF3F0FF)         // Soft lavender pill background
+val LavenderBorder = Color(0xFFDDD6FE)         // Delicate lavender border
+
+// Multi-metric circular arc colors (Matching reference image rings)
+val MetricOrange = Color(0xFFF97316)           // Amber/Orange for Salah
+val MetricOrangeSoft = Color(0xFFFED7AA)
+val MetricPurple = Color(0xFF8B5CF6)           // Purple for Tahajjud
+val MetricPurpleSoft = Color(0xFFDDD6FE)
+val MetricGreen = Color(0xFF10B981)            // Green for Dhikr/Amal
+val MetricGreenSoft = Color(0xFFA7F3D0)
 
 // Aliases for compatibility
 val WarmWhiteBackground = MinimalWhiteBackground

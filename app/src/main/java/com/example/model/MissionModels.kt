@@ -76,13 +76,17 @@ data class SmartAlarmConfig(
     val difficulty: MissionDifficulty = MissionDifficulty.EASY,
     val taskCount: Int = 2,
     val registeredQrToken: String = "",
+    val qrAllowlist: List<String> = emptyList(),
     val registeredTargetSignature: String = "",
     val registeredTargetName: String = "",
     val emergencyFallbackAllowed: Boolean = true,
     val emergencyPressCountRequired: Int = 8,
     val soundVolume: Float = 1.0f,
     val vibrate: Boolean = true
-)
+) {
+    val activeAllowlist: Set<String>
+        get() = (qrAllowlist + registeredQrToken).filter { it.isNotBlank() }.toSet()
+}
 
 data class MathProblem(
     val id: String,

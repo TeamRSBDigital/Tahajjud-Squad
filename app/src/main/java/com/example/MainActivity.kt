@@ -10,12 +10,19 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -45,7 +52,8 @@ enum class AmalNavDestination(
     PROFILE("profile", "প্রোফাইল", "Profile", Icons.Default.Person),
     SUPER_ADMIN("super_admin", "অ্যাডমিন", "Admin", Icons.Default.AdminPanelSettings),
     SMART_ALARM_SETTINGS("alarm_settings", "মিশন সেটিংস", "Mission Settings", Icons.Default.Tune),
-    ALARM_MISSION("alarm_mission", "মিশন", "Mission", Icons.Default.AlarmOn)
+    ALARM_MISSION("alarm_mission", "মিশন", "Mission", Icons.Default.AlarmOn),
+    QR_MISSION_SCANNER("qr_mission_scanner", "কিউআর স্ক্যানার", "QR Scanner", Icons.Default.QrCodeScanner)
 }
 
 class MainActivity : ComponentActivity() {
@@ -75,6 +83,7 @@ fun AmalAppRoot(initialRoute: String) {
         mutableStateOf(
             when (initialRoute) {
                 "alarm_mission" -> AmalNavDestination.ALARM_MISSION
+                "qr_mission_scanner" -> AmalNavDestination.QR_MISSION_SCANNER
                 "alarm_settings" -> AmalNavDestination.SMART_ALARM_SETTINGS
                 "tahajjud" -> AmalNavDestination.TAHAJJUD
                 "squad" -> AmalNavDestination.SQUAD
@@ -132,54 +141,74 @@ fun AmalAppRoot(initialRoute: String) {
                 currentScreen != AmalNavDestination.ALARM_MISSION &&
                 currentScreen != AmalNavDestination.SMART_ALARM_SETTINGS
             ) {
-                NavigationBar(
-                    containerColor = MinimalWhiteSurface,
-                    contentColor = TextDarkPrimary,
-                    tonalElevation = 3.dp,
-                    windowInsets = WindowInsets.navigationBars
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
-                    val mainTabs = listOf(
-                        AmalNavDestination.HOME,
-                        AmalNavDestination.PRAYER,
-                        AmalNavDestination.TAHAJJUD,
-                        AmalNavDestination.AMAL,
-                        AmalNavDestination.SQUAD,
-                        AmalNavDestination.DHIKR,
-                        AmalNavDestination.RECORDS,
-                        AmalNavDestination.PROFILE
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(32.dp),
+                        color = MinimalWhiteSurface,
+                        border = BorderStroke(1.dp, MinimalWhiteCardBorder),
+                        shadowElevation = 6.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceAround,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val mainTabs = listOf(
+                                AmalNavDestination.HOME,
+                                AmalNavDestination.PRAYER,
+                                AmalNavDestination.TAHAJJUD,
+                                AmalNavDestination.AMAL,
+                                AmalNavDestination.SQUAD,
+                                AmalNavDestination.DHIKR,
+                                AmalNavDestination.RECORDS,
+                                AmalNavDestination.PROFILE
+                            )
 
-                    mainTabs.forEach { destination ->
-                        val isSelected = currentScreen == destination
-                        NavigationBarItem(
-                            selected = isSelected,
-                            onClick = { currentScreen = destination },
-                            icon = {
-                                Icon(
-                                    imageVector = destination.icon,
-                                    contentDescription = destination.titleEn,
-                                    tint = if (isSelected) EmeraldPrimary else Color(0xFF64748B),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = if (isBengali) destination.titleBn else destination.titleEn,
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 9.5.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                        color = if (isSelected) EmeraldPrimary else Color(0xFF64748B)
-                                    ),
-                                    maxLines = 1
-                                )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = EmeraldSoftBg,
-                                selectedIconColor = EmeraldPrimary,
-                                unselectedIconColor = Color(0xFF64748B)
-                            ),
-                            modifier = Modifier.testTag("nav_${destination.route}")
-                        )
+                            mainTabs.forEach { destination ->
+                                val isSelected = currentScreen == destination
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .clickable { currentScreen = destination }
+                                        .padding(horizontal = 3.dp, vertical = 3.dp)
+                                        .testTag("nav_${destination.route}")
+                                ) {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .size(34.dp)
+                                            .clip(CircleShape)
+                                            .background(if (isSelected) EmeraldDark else Color.Transparent)
+                                    ) {
+                                        Icon(
+                                            imageVector = destination.icon,
+                                            contentDescription = destination.titleEn,
+                                            tint = if (isSelected) Color.White else Color(0xFF64748B),
+                                            modifier = Modifier.size(19.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = if (isBengali) destination.titleBn else destination.titleEn,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontSize = 9.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                            color = if (isSelected) EmeraldDark else Color(0xFF64748B)
+                                        ),
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
